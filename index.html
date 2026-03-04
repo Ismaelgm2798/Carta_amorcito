@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Regalo Especial</title>
+    <style>
+        :root {
+            --color-bg: #fff0f3;
+            --color-sobre: #ff4d6d;
+            --color-sobre-oscuro: #c9184a;
+            --color-carta: #ffffff;
+            --radio-sobre: 40px; /* Bordes mucho más redondeados */
+        }
+
+        body {
+            background-color: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Pantalla de Bloqueo */
+        .login-screen {
+            text-align: center;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        .login-screen h2 { color: var(--color-sobre-oscuro); font-size: 2.2rem; margin-bottom: 20px; }
+
+        input {
+            padding: 15px;
+            font-size: 2.5rem;
+            width: 180px;
+            text-align: center;
+            border: 4px solid var(--color-sobre);
+            border-radius: 20px;
+            outline: none;
+            color: var(--color-sobre-oscuro);
+            background: white;
+        }
+
+        /* Contenedor del Sobre (Escalado +50%) */
+        .envelope-wrapper {
+            position: relative;
+            width: 675px; /* 450 * 1.5 */
+            height: 450px; /* 300 * 1.5 */
+            background-color: var(--color-sobre-oscuro);
+            display: none;
+            cursor: pointer;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+            border-radius: var(--radio-sobre);
+            z-index: 10;
+            transition: transform 0.3s;
+        }
+
+        .envelope-wrapper:hover { transform: scale(1.02); }
+
+        .envelope-wrapper::before {
+            content: "";
+            position: absolute;
+            z-index: 2;
+            border-top: 225px solid transparent;
+            border-right: 337.5px solid var(--color-sobre);
+            border-bottom: 225px solid var(--color-sobre);
+            border-left: 337.5px solid var(--color-sobre);
+            border-radius: var(--radio-sobre);
+        }
+
+        /* Tapa del sobre */
+        .flap {
+            position: absolute;
+            top: 0;
+            width: 0;
+            height: 0;
+            border-left: 337.5px solid transparent;
+            border-right: 337.5px solid transparent;
+            border-top: 240px solid var(--color-sobre-oscuro);
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 3;
+            border-radius: var(--radio-sobre) var(--radio-sobre) 0 0;
+        }
+
+        /* Carta (Escalada +50%) */
+        .letter {
+            position: absolute;
+            bottom: 30px;
+            left: 37.5px;
+            width: 600px; /* 400 * 1.5 */
+            height: 390px; /* 260 * 1.5 */
+            background: var(--color-carta);
+            z-index: 1;
+            transition: transform 0.8s ease, height 0.8s ease;
+            padding: 45px;
+            box-sizing: border-box;
+            text-align: center;
+            overflow-y: auto;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.1);
+        }
+
+        .letter h1 { 
+            font-family: 'Brush Script MT', cursive; 
+            color: var(--color-sobre-oscuro); 
+            font-size: 3.5rem; 
+            margin: 0; 
+        }
+
+        .letter p { font-size: 1.3rem; color: #444; line-height: 1.8; margin: 20px 0; }
+
+        .letter img {
+            width: 100%;
+            border-radius: 20px;
+            margin: 20px 0;
+            border: 8px solid #fff0f3;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Apertura */
+        .envelope-wrapper.open .flap { transform: rotateX(180deg); z-index: 0; }
+        .envelope-wrapper.open .letter {
+            transform: translateY(150px);
+            height: 750px;
+            z-index: 5;
+        }
+
+        /* Corazón de Cierre (Escalado) */
+        .heart-btn {
+            position: absolute;
+            top: 45%;
+            left: calc(50% - 30px);
+            width: 60px;
+            height: 60px;
+            background: #ff1744;
+            transform: rotate(45deg);
+            z-index: 4;
+            transition: 0.5s;
+        }
+        .heart-btn::before, .heart-btn::after {
+            content: ""; width: 60px; height: 60px; background: #ff1744;
+            border-radius: 50%; position: absolute;
+        }
+        .heart-btn::before { top: -30px; left: 0; }
+        .heart-btn::after { left: -30px; top: 0; }
+
+        .envelope-wrapper.open .heart-btn { opacity: 0; pointer-events: none; }
+
+        /* Lluvia de corazones */
+        .heart-rain {
+            position: fixed;
+            color: #ff4d6d;
+            font-size: 25px;
+            top: -30px;
+            user-select: none;
+            z-index: 1;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="musica" loop>
+        <source src="C:\Users\ismae\Desktop\CARTA\musica\Carla Morrison - Eres tú (letra).mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="login-screen" id="login">
+        <h2>Ingresa la fecha secreta</h2>
+        <input type="password" id="pin" maxlength="4" placeholder="••••">
+        <p id="error" style="color: #c9184a; display: none; margin-top: 15px; font-weight: bold;">Esa no es la clave correcta .</p>
+    </div>
+
+    <div class="envelope-wrapper" id="envelope">
+        <div class="flap"></div>
+        <div class="letter">
+            <h1>❤️¡Para ti mi amorcito hermoso!❤️</h1>
+
+            <p>Se que no llevamos una gran cantidad de tiempo como novios pero para mi es muy importante que tengas presente lo importante que eres
+                para mi y no sabes lo mucho que me alegra que seas tú quien esté a mi lado.</p>
+
+            <img src="C:\Users\ismae\Desktop\CARTA\IMAGENES\20250810_150726.jpg" alt="Recuerdo">
+
+            <p>Como te lo prometí y recordarás, me pediste que te llamara de cierta forma y la verdad te dije que lo haría, sin embargo sabía que se 
+                acercaba esta fecha y quería que fuera en este momento para llamarte  así, "Mi Gordito ❤️" y hoy es el gran día.
+            </p>
+            
+            <img src="C:\Users\ismae\Desktop\CARTA\IMAGENES\DRAGONITE&ROWLET.png" alt="Recuerdo 1">
+            
+            <p>No puedo esperar para seguir creando más recuerdos, sé que nos falta muy poco para estar juntos e ir creando nuestra propia historia,
+                contigo quiero hacer mi viaje y quiero que seas mi compañero y piloto ✈️ de esa maravillosa aventura, la cuál nos dará muchas experiencias,
+            momentos, lugares y cosas grandiosas por vivir.</p>
+            <p>Quiero decirte que eres la mejor parte de mi vida, eres el despegue que me eleva 🛫 y la tranquilidad de saber que estamos en el mismo vuelo. 
+                ¡Te amo!</p>
+            
+            <img src="C:\Users\ismae\Desktop\CARTA\IMAGENES\concorde.png" alt="Recuerdo 2">
+            <P>🔨🔧🛠️ 🛩️ Mi ING.#️⃣1️⃣ ✈️🪛⚙️🔩</P>
+
+            <p>De verdad que tengo mucho que agradecerte, por mandarme mensaje ese septiembre de 2024 y tener tanta paciencia conmigo, porque sé que sin eso no estaríamos donde estamos ahora.</p>
+            <p>En segundo, estoy muy feliz por llevar 6 grandiosos y maravillosos meses en esta bonita relación, se que no todo ha sido miel sobre hojuelas 
+                pero vamos mejorando y aprendiendo cada vez más y eso me alegra bastante, se que estamos siendo y seremos un grandioso equipo, que lograremos
+                todo lo que nos propongamos, te amo y de verdad que haré todo lo que esté en mis manos para que todos los días me sigas eligiendo y me sigas
+                amando como hasta ahora, mi gordito hermoso.
+            </p>
+            <P>Por último solo decirte que te amo con todo mi ser y que te amo tal cúal eres. Vamos por el año gordito y de ahí, por toda la vida, sí 
+                me lo permites.
+            </P>
+            
+            
+            <p style="font-weight: bold; font-size: 1.5rem;">¡Te amo por siempre 💞, mi gordito hermoso!💖</p>
+        </div>
+        <div class="heart-btn"></div>
+    </div>
+
+    <script>
+        const pinInput = document.getElementById('pin');
+        const loginScreen = document.getElementById('login');
+        const envelope = document.getElementById('envelope');
+        const errorMsg = document.getElementById('error');
+        const musica = document.getElementById('musica');
+
+        const CLAVE_CORRECTA = "0509"; // Cambia tu clave aquí
+
+        pinInput.addEventListener('input', () => {
+            if (pinInput.value.length === 4) {
+                if (pinInput.value === CLAVE_CORRECTA) {
+                    loginScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loginScreen.style.display = 'none';
+                        envelope.style.display = 'block';
+                        setInterval(crearCorazon, 250);
+                    }, 500);
+                } else {
+                    errorMsg.style.display = 'block';
+                    pinInput.value = '';
+                }
+            }
+        });
+
+        envelope.addEventListener('click', () => {
+            envelope.classList.toggle('open');
+            musica.play().catch(e => console.log("Música activada tras interacción"));
+        });
+
+        function crearCorazon() {
+            const corazon = document.createElement('div');
+            corazon.classList.add('heart-rain');
+            corazon.innerHTML = '❤️';
+            corazon.style.left = Math.random() * 100 + 'vw';
+            corazon.style.animationDuration = Math.random() * 3 + 2 + 's';
+            corazon.style.opacity = Math.random();
+            document.body.appendChild(corazon);
+            setTimeout(() => { corazon.remove(); }, 5000);
+        }
+    </script>
+</body>
+</html>
